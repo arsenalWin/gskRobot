@@ -180,6 +180,7 @@ public class ScreenBuild : MonoBehaviour
     const int ADD_JH = 335;
     const int ADD_END = 336;
     const int ADD_MAIN = 337;
+    const int ADD_CALL = 338;
     const int ADD_R = 341;
     const int ADD_INC = 342;
     const int ADD_DEC = 343;
@@ -569,6 +570,7 @@ public class ScreenBuild : MonoBehaviour
     MyButton AddButton_jh;
     MyButton AddButton_end;
     MyButton AddButton_main;
+    MyButton AddButton_call;
     ButtonPart AddPart3;
     Window_alpha AddWin3;
     //add4界面
@@ -1199,10 +1201,11 @@ public class ScreenBuild : MonoBehaviour
         AddButton_jh = new MyButton("F335", "LabelF335", ADD_JH, "yellowbg", "w1");
         AddButton_end = new MyButton("F336", "LabelF336", ADD_END, "yellowbg", "w1");
         AddButton_main = new MyButton("F337", "LabelF337", ADD_MAIN, "yellowbg", "w1");
+        AddButton_call = new MyButton("F338", "LabelF338", ADD_CALL, "yellowbg", "w1");
         List<Element> addpart3_members = new List<Element>();
         addpart3_members.Add(AddButton_lab); addpart3_members.Add(AddButton_jump); addpart3_members.Add(AddButton_jump_r);
         addpart3_members.Add(AddButton_jump_in); addpart2_members.Add(AddButton_jh); addpart3_members.Add(AddButton_end);
-        addpart3_members.Add(AddButton_main);
+        addpart3_members.Add(AddButton_main); addpart3_members.Add(AddButton_call);
         AddPart3 = new ButtonPart(addpart3_members);
         List<Part> addwin3_member = new List<Part>();
         addwin3_member.Add(AddPart3);
@@ -2241,11 +2244,22 @@ public class ScreenBuild : MonoBehaviour
         //PAD
         ServerCall.CursorToLine(nextline);
     }
+
+    public void programJumpToLine2(int nextline)
+    {
+        if (nextline == -1)
+        {
+            return;
+        }
+        //int nextline = GSKDATA.nextNUM[0];
+        ProgramWin.line = nextline % 10;
+        ProgramWin.fline = nextline / 10;
+    }
     //输出灯控制
     public void OutLight()
     {
         ///输入信号灯的定义
-        for (int i = 0; i < 32; i++)
+        for (int i = 0; i < 31; i++)
         {
             if (GSKDATA.OutInfo[i])
             {
@@ -2283,13 +2297,15 @@ public class ScreenBuild : MonoBehaviour
             
             int line = ProgramWin.fline * 10 + ProgramWin.line;
 
-            tmpInterpreter = (interpreter.getChild()) ? interpreter.childInterpreter : interpreter;
+            tmpInterpreter = (interpreter.getChild()) ? interpreter.childInterpreter : interpreter;     
 
             if (!GSKDATA.AxisRunning)
             {
                 //GSKDATA.RBP_result = RBP_RunParse(ProgramWin.fline * 10 + ProgramWin.line, GSKDATA.nextNUM, dir, pathdata_result, ipdata);//运行译码数据
 
+                programJumpToLine(line);
                 GSKDATA.RBP_result = tmpInterpreter.runCode(ref line, 1);
+                programJumpToLine2(line);
                 List<string> ipdata = tmpInterpreter.GetDataInfo();
 
                 switch (GSKDATA.RBP_result)
@@ -2315,7 +2331,8 @@ public class ScreenBuild : MonoBehaviour
                         GSKDATA.MOVL_t = 0;
                         if (GSKDATA.SHIFT)
                         {
-                            GSKDATA.MOVL_P2 = MotionScript.IKA.SolutionOfKinematics(tmpInterpreter.GetPathData()) + new Vector3(GSKDATA.SHIFT_PX.X, GSKDATA.SHIFT_PX.Y, GSKDATA.SHIFT_PX.Z);
+                            Vector3 px = new Vector3(GSKDATA.SHIFT_PX.X, GSKDATA.SHIFT_PX.Y, GSKDATA.SHIFT_PX.Z)/100f;
+                            GSKDATA.MOVL_P2 = MotionScript.IKA.SolutionOfKinematics(tmpInterpreter.GetPathData()) + px;
                             GSKDATA.MOVL_Z2 = MotionScript.IKA.SolutionOfKinematics_posture(tmpInterpreter.GetPathData());
                         }
                         else
@@ -2374,7 +2391,6 @@ public class ScreenBuild : MonoBehaviour
                         StartCoroutine(Waitfors(float.Parse(ipdata[0])));
                         break;
                     case "PULSE"://PULSE指令
-                        GSKDATA.AxisRunning = false;
                         //Debug.Log(ipdata[0]);
                         GSKDATA.OutInfo[int.Parse(ipdata[0])] = true;
                         OutLight();
@@ -2424,9 +2440,12 @@ public class ScreenBuild : MonoBehaviour
                             interpreter.destoryChild();//
                             EditInitial();
                             SetCurrentWin(ProgramWin);
+                            programJumpToLine(line);
                         }
                         break;
                     case "LAB":
+                        break;
+                    case "MAIN":
                         break;
                     case "CALL"://子程序
                         childFileName = ipdata[0] + ".prl";
@@ -2438,7 +2457,7 @@ public class ScreenBuild : MonoBehaviour
                         line = 0;
                         break;
                     default:
-                        Debug.Log("没有找到相关指令：" + GSKDATA.RBP_result);
+                        //Debug.Log("没有找到相关指令：" + GSKDATA.RBP_result);
                         break;
                 }
             }
@@ -2446,8 +2465,7 @@ public class ScreenBuild : MonoBehaviour
             {
                 StartCoroutine(WarningYellow("行：" + (ProgramWin.fline + ProgramWin.line) + "运行未完成"));
             }
-            programJumpToLine(line);
-        }
+        } 
         
     }
     //译码
@@ -2509,7 +2527,7 @@ public class ScreenBuild : MonoBehaviour
     //输出接口，t时间后输出接口置为零
     private IEnumerator Waitfor(int t, int num)
     {
-        yield return new WaitForSeconds(t / 1000f);
+        yield return new WaitForSeconds(t);
         GSKDATA.OutInfo[num] = false;
         OutLight();
     }
@@ -2821,6 +2839,9 @@ public class ScreenBuild : MonoBehaviour
                 break;
             case ADD_ARCOF:
                 addProgram("ARCOF");
+                break;
+            case ADD_CALL:
+                addProgram("CALL");
                 break;
         }
     }

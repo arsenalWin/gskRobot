@@ -301,7 +301,7 @@ public class GSKDATA :MonoBehaviour{
         GoPress = false;//前进键按下
         BackPress = false;//后退键按下
         RBP_result = "";
-        Speed = 0.5f;//运行时的速度
+        Speed = 0.8f;//运行时的速度
 
         Weld = false;
 

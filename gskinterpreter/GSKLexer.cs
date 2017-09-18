@@ -784,7 +784,7 @@ namespace interpreter
                 name = name + character;
                 character = this.nextChar();
             }
-            Debug.Log("name:" + name);
+            //Debug.Log("name:" + name);
             if (reservedKeywords.ContainsKey(name))
             {
                 return reservedKeywords[name];

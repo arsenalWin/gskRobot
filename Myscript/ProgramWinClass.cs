@@ -65,7 +65,7 @@ public class ProgramWinClass : Win
         string temp1 = null;
         while ((temp1 = sr.ReadLine()) != null)
         {
-            if (!Regex.IsMatch(temp1, @"^P[0-9]*") && !Regex.IsMatch(temp1, @"^U[0-9]*") && !Regex.IsMatch(temp1, @"^T[0-9]*") && !Regex.IsMatch(temp1, @"^#"))
+            if (!Regex.IsMatch(temp1, @"^P[0-9]+") && !Regex.IsMatch(temp1, @"^U[0-9]*") && !Regex.IsMatch(temp1, @"^T[0-9]*") && !Regex.IsMatch(temp1, @"^#"))
             {
                 if (temp1 != "")
                 {
@@ -500,6 +500,9 @@ public class ProgramWinClass : Win
                 break;
             case "ARCOF":
                 temp_ = "ARCOF AC150 ,AV18 T1 ;";
+                break;
+            case "CALL":
+                temp_ = "CALL JOB0 ;";
                 break;
         }
         line++;
@@ -1341,6 +1344,18 @@ public class ProgramWinClass : Win
                 }
                 break;
             case "LAB":
+                Regexstr = @"^[0-9]{1,3}$";
+                if (!Regex.IsMatch(xx, Regexstr))
+                {
+                    return "请输入0-999";
+                }
+                else
+                {
+                    tempstr = xx;
+                    value.text = tempstr;
+                }
+                break;
+            case "JOB":
                 Regexstr = @"^[0-9]{1,3}$";
                 if (!Regex.IsMatch(xx, Regexstr))
                 {

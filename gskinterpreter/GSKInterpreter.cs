@@ -432,7 +432,7 @@ namespace interpreter
                     }
                     break;
                 case TokenType.RNUM:
-                    varR.Add(varNum, value);
+                    varR[varNum] = value;
                     break;
 
             }

@@ -434,7 +434,7 @@ namespace interpreter
         {
             if (currentToken.type() == type)
             {
-                Debug.Log(string.Format("eat the token {0} successfully", currentToken.type().ToString()));
+                //Debug.Log(string.Format("eat the token {0} successfully", currentToken.type().ToString()));
                 tokens.MoveNext();
                 currentToken = tokens.Current;
                 while (currentToken.type() == TokenType.COMMA)
